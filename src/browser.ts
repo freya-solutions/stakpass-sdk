@@ -100,15 +100,16 @@ export interface kkiapayResult {
  */
 export async function payWithkkiapay(
     metadata: kkiapayMetadata,
-    options: { buyer?: Buyer } = {},
+    options: { buyer?: Buyer; theme?: string } = {},
 ): Promise<kkiapayResult> {
     const widget = await loadkkiapay();
     // The widget stringifies keys that are present but undefined.
-    const buyer = Object.fromEntries(
+    const widgetOptions = Object.fromEntries(
         Object.entries({
             email: options.buyer?.email,
             fullname: options.buyer?.name,
             phone: options.buyer?.phone,
+            theme: options.theme,
         }).filter(([, value]) => value),
     );
 
@@ -138,7 +139,7 @@ export async function payWithkkiapay(
             sandbox: metadata.sandbox,
             reason: metadata.reason,
             data: metadata.stateData,
-            ...buyer,
+            ...widgetOptions,
         });
     });
 }
@@ -156,6 +157,8 @@ export interface CheckoutOptions extends PollOptions {
     /** Required for STRIPE: an HTTPS page of one of the key's sites. */
     returnUrl?: string;
     buyer?: Buyer;
+    /** kkiapay only: the widget's accent color, a hex string such as `#7C3AED`. */
+    theme?: string;
 }
 
 /**
@@ -174,7 +177,7 @@ export async function checkout(
 
         return new Promise<PartnerOrder>(() => undefined);
     }
-    await payWithkkiapay(initiation.metadata, { buyer: options.buyer });
+    await payWithkkiapay(initiation.metadata, { buyer: options.buyer, theme: options.theme });
 
     return sp.orders.waitForPayment(orderId, options);
 }

@@ -60,6 +60,14 @@ describe('kkiapay widget', () => {
         }
     });
 
+    it('passes the theme to the widget', async () => {
+        const page = pageWithWidget('success');
+        restore = page.restore;
+        const { payWithkkiapay } = await freshBrowserModule();
+        await payWithkkiapay(metadata, { theme: '#7C3AED' });
+        expect(page.open).toHaveBeenCalledWith(expect.objectContaining({ theme: '#7C3AED' }));
+    });
+
     it('opens the widget with the payment parameters and the buyer', async () => {
         const page = pageWithWidget('success');
         restore = page.restore;
