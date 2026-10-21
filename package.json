@@ -1,0 +1,59 @@
+{
+    "name": "@stakpass/sdk",
+    "version": "0.1.0",
+    "description": "Sell StakPass event tickets from your own website or server.",
+    "license": "MIT",
+    "type": "module",
+    "sideEffects": false,
+    "main": "./dist/index.cjs",
+    "module": "./dist/index.mjs",
+    "types": "./dist/index.d.mts",
+    "exports": {
+        ".": {
+            "import": {
+                "types": "./dist/index.d.mts",
+                "default": "./dist/index.mjs"
+            },
+            "require": {
+                "types": "./dist/index.d.cts",
+                "default": "./dist/index.cjs"
+            }
+        },
+        "./browser": {
+            "import": {
+                "types": "./dist/browser.d.mts",
+                "default": "./dist/browser.mjs"
+            },
+            "require": {
+                "types": "./dist/browser.d.cts",
+                "default": "./dist/browser.cjs"
+            }
+        },
+        "./package.json": "./package.json"
+    },
+    "unpkg": "./dist/stakpass.iife.js",
+    "jsdelivr": "./dist/stakpass.iife.js",
+    "files": [
+        "dist",
+        "README.md",
+        "LICENSE"
+    ],
+    "engines": {
+        "node": ">=18"
+    },
+    "scripts": {
+        "build": "tsdown",
+        "typecheck": "tsc --noEmit",
+        "check": "biome check --write",
+        "test": "vitest run",
+        "release": "bumpp"
+    },
+    "devDependencies": {
+        "@biomejs/biome": "^2.5.15",
+        "@types/node": "^26.6.5",
+        "bumpp": "^12.3.0",
+        "tsdown": "^0.23.1",
+        "typescript": "^7.0.2",
+        "vitest": "^5.0.5"
+    }
+}

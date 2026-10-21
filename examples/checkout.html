@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>StakPass checkout example</title>
+    </head>
+    <body>
+        <h1 id="title">Loading…</h1>
+        <ul id="tickets"></ul>
+        <input id="email" type="email" placeholder="you@example.com" />
+        <button id="buy" type="button" disabled>Buy</button>
+        <p id="status"></p>
+
+        <!-- Replace the key with yours. Serve this page from a site listed on the key. -->
+        <script src="https://cdn.jsdelivr.net/npm/@stakpass/sdk"></script>
+        <script>
+            const sp = StakPass.init({ publishableKey: 'spk_pub_REPLACE_ME' });
+            const cart = StakPass.createCart();
+            let tickets = [];
+
+            const status = (text) => (document.getElementById('status').textContent = text);
+
+            async function load() {
+                const event = await sp.event.get();
+                document.getElementById('title').textContent = event.title;
+                tickets = await sp.tickets.list();
+                const list = document.getElementById('tickets');
+                for (const ticket of tickets.filter((item) => item.salesOpen)) {
+                    const item = document.createElement('li');
+                    const add = document.createElement('button');
+                    add.type = 'button';
+                    add.textContent = `${ticket.title} — ${ticket.price} (add)`;
+                    add.onclick = () => {
+                        cart.addTicket(ticket.id);
+                        status(`Total: ${cart.totals({ tickets }).total}`);
+                        document.getElementById('buy').disabled = false;
+                    };
+                    item.append(add);
+                    list.append(item);
+                }
+            }
+
+            document.getElementById('buy').onclick = async () => {
+                const email = document.getElementById('email').value;
+                const issues = cart.validate({ tickets });
+                if (issues.length) {
+                    status(`Fix your basket: ${issues.map((issue) => issue.code).join(', ')}`);
+                    return;
+                }
+                try {
+                    const order = await sp.orders.create({ buyer: { email }, ...cart.toOrderItems() });
+                    status('Waiting for payment…');
+                    await StakPass.checkout(sp, order.id, { provider: 'KKIAPAY', buyer: { email } });
+                    const issued = await sp.orders.waitForTickets(order.id);
+                    status(`Paid. Ticket codes: ${issued.map((ticket) => ticket.code).join(', ')}`);
+                } catch (error) {
+                    status(`${error.code ?? 'ERROR'}: ${error.message}`);
+                }
+            };
+
+            load().catch((error) => status(`${error.code ?? 'ERROR'}: ${error.message}`));
+        </script>
+    </body>
+</html>
