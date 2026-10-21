@@ -1,0 +1,101 @@
+name: Release
+
+# Runs when `pnpm release` (bumpp) pushes a tag such as v1.2.3. The package is published to npm
+# with trusted publishing (OIDC): no npm token is stored anywhere. The trusted publisher on
+# npmjs.com must name this repository and this file: release.yaml.
+on:
+    push:
+        tags: ['v*']
+
+concurrency:
+    group: release-${{ github.ref }}
+    cancel-in-progress: false
+
+defaults:
+    run:
+        shell: bash
+
+permissions:
+    contents: read
+
+jobs:
+    publish:
+        name: Publish to npm
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+        permissions:
+            contents: read
+            # Lets the job prove its identity to npm, which then accepts the publish and signs the provenance.
+            id-token: write
+        steps:
+            - name: Checkout the code
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+              with:
+                  persist-credentials: false
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+
+            - name: Setup Node.js
+              uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+              with:
+                  node-version: '24.21.0'
+                  cache: pnpm
+                  registry-url: 'https://registry.npmjs.org'
+
+            - name: Check the tag matches package.json
+              run: |
+                  version="$(node -p "require('./package.json').version")"
+                  if [ "${GITHUB_REF_NAME}" != "v${version}" ]; then
+                      echo "Tag ${GITHUB_REF_NAME} does not match package.json version ${version}" >&2
+                      exit 1
+                  fi
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Run Biome
+              run: pnpm exec biome ci --max-diagnostics=none .
+
+            - name: Run TypeScript type check
+              run: pnpm typecheck
+
+            - name: Run tests
+              run: pnpm test
+
+            - name: Build
+              run: pnpm build
+
+            - name: Check the npm CLI supports trusted publishing
+              run: |
+                  # Trusted publishing needs npm 11.5.1 or newer.
+                  npm --version
+                  node -e "const [a,b,c]=process.argv[1].split('.').map(Number); process.exit(a>11||(a===11&&(b>5||(b===5&&c>=1)))?0:1)" "$(npm --version)"
+
+            - name: Publish
+              run: |
+                  # A version with a hyphen (1.0.0-beta.1) is a pre-release: it must not become `latest`.
+                  if [[ "${GITHUB_REF_NAME}" == *-* ]]; then
+                      npm publish --provenance --access public --tag next
+                  else
+                      npm publish --provenance --access public
+                  fi
+
+    github-release:
+        name: Create the GitHub release
+        needs: publish
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        permissions:
+            contents: write
+        steps:
+            - name: Create the release
+              env:
+                  GH_TOKEN: ${{ github.token }}
+                  GH_REPO: ${{ github.repository }}
+              run: |
+                  if [[ "${GITHUB_REF_NAME}" == *-* ]]; then
+                      gh release create "${GITHUB_REF_NAME}" --verify-tag --generate-notes --prerelease
+                  else
+                      gh release create "${GITHUB_REF_NAME}" --verify-tag --generate-notes
+                  fi
