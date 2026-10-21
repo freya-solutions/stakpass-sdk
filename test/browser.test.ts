@@ -26,10 +26,10 @@ function pageWithWidget(outcome: 'success' | 'closed') {
         createElement: () => script,
         head: {
             append: () => {
-                scope.openKkiapayWidget = open;
+                scope.openkkiapayWidget = open;
                 scope.addSuccessListener = (listener: () => void) => (listeners.success = listener);
                 scope.addFailedListener = (listener: () => void) => (listeners.failed = listener);
-                scope.addKkiapayCloseListener = (listener: () => void) =>
+                scope.addkkiapayCloseListener = (listener: () => void) =>
                     (listeners.close = listener);
                 script.onload?.();
             },
@@ -46,15 +46,15 @@ async function freshBrowserModule() {
     return import('../src/browser');
 }
 
-describe('Kkiapay widget', () => {
+describe('kkiapay widget', () => {
     let restore: (() => void) | undefined;
     afterEach(() => {
         restore?.();
         for (const name of [
-            'openKkiapayWidget',
+            'openkkiapayWidget',
             'addSuccessListener',
             'addFailedListener',
-            'addKkiapayCloseListener',
+            'addkkiapayCloseListener',
         ]) {
             delete (globalThis as Record<string, unknown>)[name];
         }
@@ -63,8 +63,8 @@ describe('Kkiapay widget', () => {
     it('opens the widget with the payment parameters and the buyer', async () => {
         const page = pageWithWidget('success');
         restore = page.restore;
-        const { payWithKkiapay } = await freshBrowserModule();
-        const result = await payWithKkiapay(metadata, {
+        const { payWithkkiapay } = await freshBrowserModule();
+        const result = await payWithkkiapay(metadata, {
             buyer: { email: 'a@b.co', name: 'Ada' },
         });
         expect(result).toEqual({ transactionId: 'tx_1' });
@@ -83,13 +83,13 @@ describe('Kkiapay widget', () => {
     it('rejects when the buyer closes the widget', async () => {
         const page = pageWithWidget('closed');
         restore = page.restore;
-        const { payWithKkiapay } = await freshBrowserModule();
-        await expect(payWithKkiapay(metadata)).rejects.toMatchObject({ code: 'PAYMENT_CLOSED' });
+        const { payWithkkiapay } = await freshBrowserModule();
+        await expect(payWithkkiapay(metadata)).rejects.toMatchObject({ code: 'PAYMENT_CLOSED' });
     });
 
     it('needs a page', async () => {
-        const { payWithKkiapay } = await freshBrowserModule();
-        await expect(payWithKkiapay(metadata)).rejects.toMatchObject({ code: 'BROWSER_ONLY' });
+        const { payWithkkiapay } = await freshBrowserModule();
+        await expect(payWithkkiapay(metadata)).rejects.toMatchObject({ code: 'BROWSER_ONLY' });
     });
 
     it('checkout pays, then waits until the backend sees the order paid', async () => {

@@ -41,7 +41,7 @@ const order = await sp.orders.create({
     ...cart.toOrderItems(),
 });
 
-// 2. Pay. Kkiapay opens its widget; the promise resolves once the backend sees the order paid.
+// 2. Pay. kkiapay opens its widget; the promise resolves once the backend sees the order paid.
 const paid = await checkout(sp, order.id, { provider: 'KKIAPAY', buyer: { email: 'ada@example.com' } });
 
 // 3. The tickets are issued a moment after payment.
@@ -60,7 +60,7 @@ if (back?.payment === 'success') {
 }
 ```
 
-Your page's Content-Security-Policy must allow `https://api.stakpass.com`, and for Kkiapay `https://cdn.kkiapay.me` and its frames.
+Your page's Content-Security-Policy must allow `https://api.stakpass.com`, and for kkiapay `https://cdn.kkiapay.me` and its frames.
 
 ## On a server
 
@@ -93,7 +93,7 @@ const { data, total } = await sp.orders.list({ status: 'PAID' }); // secret keys
 | `sp.orders.watch(id, onChange?)` / `waitForPayment(id)` / `waitForTickets(id)` | Polling with backoff. `watch` returns `{ stop, done }`. |
 | `sp.orders.list(params?)` | Orders of the key. Secret keys only. |
 | `createCart()` | In-memory basket: `addTicket`, `addPack`, `setTicket`, `remove…`, `totals`, `validate`, `toOrderItems`. Totals are indicative; the backend is the authority and adds the fees. |
-| `checkout(sp, orderId, options)` · `payWithKkiapay` · `redirectToStripe` (`@stakpass/sdk/browser`) | Payment helpers for a page. |
+| `checkout(sp, orderId, options)` · `payWithkkiapay` · `redirectToStripe` (`@stakpass/sdk/browser`) | Payment helpers for a page. |
 | `parsePaymentReturn(search)` | Reads `?orderId=…&payment=success\|cancelled`. |
 
 Order statuses: `INIT`, `PENDING`, `PAID`, `REFUND`, `CANCELLED`. The last three are final.

@@ -1,4 +1,4 @@
-import { checkout, payWithKkiapay, redirectToStripe } from './browser';
+import { checkout, payWithkkiapay, redirectToStripe } from './browser';
 import { StakPass } from './client';
 import { createCart, parsePaymentReturn } from './index';
 
@@ -7,6 +7,6 @@ import { createCart, parsePaymentReturn } from './index';
     createCart,
     parsePaymentReturn,
     checkout,
-    payWithKkiapay,
+    payWithkkiapay,
     redirectToStripe,
 });

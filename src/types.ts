@@ -99,7 +99,7 @@ export interface PartnerUserTicket {
     orderId: string;
 }
 
-export interface KkiapayMetadata {
+export interface kkiapayMetadata {
     amount: number;
     publicKey: string;
     sandbox: boolean;
@@ -114,7 +114,7 @@ export interface StripeMetadata {
 }
 
 export type PaymentInitiation =
-    | { provider: 'KKIAPAY'; metadata: KkiapayMetadata }
+    | { provider: 'KKIAPAY'; metadata: kkiapayMetadata }
     | { provider: 'STRIPE'; metadata: StripeMetadata };
 
 export interface Buyer {

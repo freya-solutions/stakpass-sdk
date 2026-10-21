@@ -3,7 +3,7 @@ import { isBrowser } from './env';
 import { SDK_ERROR, StakPassError } from './errors';
 import type {
     Buyer,
-    KkiapayMetadata,
+    kkiapayMetadata,
     PartnerOrder,
     PaymentInitiation,
     PollOptions,
@@ -14,47 +14,47 @@ export * from './index';
 
 const KKIAPAY_SCRIPT = 'https://cdn.kkiapay.me/k.js';
 
-interface KkiapayGlobals {
-    openKkiapayWidget(options: Record<string, unknown>): void;
+interface kkiapayGlobals {
+    openkkiapayWidget(options: Record<string, unknown>): void;
     addSuccessListener(listener: (response: { transactionId?: string }) => void): void;
     addFailedListener(listener: (response?: unknown) => void): void;
-    addKkiapayCloseListener(listener: () => void): void;
+    addkkiapayCloseListener(listener: () => void): void;
 }
 
-type KkiapayHandlers = {
+type kkiapayHandlers = {
     success: (response: { transactionId?: string }) => void;
     failed: () => void;
     close: () => void;
 };
 
-let widgetLoading: Promise<KkiapayGlobals> | undefined;
-let handlers: KkiapayHandlers | undefined;
+let widgetLoading: Promise<kkiapayGlobals> | undefined;
+let handlers: kkiapayHandlers | undefined;
 
 function widgetGlobals() {
-    return globalThis as unknown as Partial<KkiapayGlobals>;
+    return globalThis as unknown as Partial<kkiapayGlobals>;
 }
 
-function loadKkiapay(): Promise<KkiapayGlobals> {
+function loadkkiapay(): Promise<kkiapayGlobals> {
     if (!isBrowser()) {
         return Promise.reject(
             new StakPassError(SDK_ERROR.BROWSER_ONLY, 0, 'The payment widget runs in a page only'),
         );
     }
-    widgetLoading ??= new Promise<KkiapayGlobals>((resolve, reject) => {
+    widgetLoading ??= new Promise<kkiapayGlobals>((resolve, reject) => {
         const ready = () => {
             const globals = widgetGlobals();
             if (
-                globals.openKkiapayWidget &&
+                globals.openkkiapayWidget &&
                 globals.addSuccessListener &&
                 globals.addFailedListener &&
-                globals.addKkiapayCloseListener
+                globals.addkkiapayCloseListener
             ) {
                 // The widget keeps every listener it is given: register once, dispatch to the
                 // payment in progress.
                 globals.addSuccessListener((response) => handlers?.success(response));
                 globals.addFailedListener(() => handlers?.failed());
-                globals.addKkiapayCloseListener(() => handlers?.close());
-                resolve(globals as KkiapayGlobals);
+                globals.addkkiapayCloseListener(() => handlers?.close());
+                resolve(globals as kkiapayGlobals);
                 return;
             }
             reject(
@@ -88,21 +88,21 @@ function loadKkiapay(): Promise<KkiapayGlobals> {
     return widgetLoading;
 }
 
-export interface KkiapayResult {
+export interface kkiapayResult {
     transactionId?: string;
 }
 
 /**
- * Opens the Kkiapay widget for a `KKIAPAY` initiation. Resolves when the buyer pays. Rejects with
+ * Opens the kkiapay widget for a `KKIAPAY` initiation. Resolves when the buyer pays. Rejects with
  * `PAYMENT_CLOSED` when the widget is closed or the payment fails. A paid widget does not mean a
  * paid order: confirm with `orders.waitForPayment`, which `checkout` does.
- * The page's Content-Security-Policy must allow `https://cdn.kkiapay.me` and Kkiapay's frames.
+ * The page's Content-Security-Policy must allow `https://cdn.kkiapay.me` and kkiapay's frames.
  */
-export async function payWithKkiapay(
-    metadata: KkiapayMetadata,
+export async function payWithkkiapay(
+    metadata: kkiapayMetadata,
     options: { buyer?: Buyer } = {},
-): Promise<KkiapayResult> {
-    const widget = await loadKkiapay();
+): Promise<kkiapayResult> {
+    const widget = await loadkkiapay();
     // The widget stringifies keys that are present but undefined.
     const buyer = Object.fromEntries(
         Object.entries({
@@ -112,7 +112,7 @@ export async function payWithKkiapay(
         }).filter(([, value]) => value),
     );
 
-    return new Promise<KkiapayResult>((resolve, reject) => {
+    return new Promise<kkiapayResult>((resolve, reject) => {
         let settled = false;
         const closed = () => {
             if (!settled) {
@@ -132,7 +132,7 @@ export async function payWithKkiapay(
             failed: closed,
             close: closed,
         };
-        widget.openKkiapayWidget({
+        widget.openkkiapayWidget({
             amount: metadata.amount,
             key: metadata.publicKey,
             sandbox: metadata.sandbox,
@@ -174,7 +174,7 @@ export async function checkout(
 
         return new Promise<PartnerOrder>(() => undefined);
     }
-    await payWithKkiapay(initiation.metadata, { buyer: options.buyer });
+    await payWithkkiapay(initiation.metadata, { buyer: options.buyer });
 
     return sp.orders.waitForPayment(orderId, options);
 }

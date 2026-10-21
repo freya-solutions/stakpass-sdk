@@ -81,7 +81,7 @@ Le total du panier est indicatif. Le backend reste la référence : le montant d
 | `orders.pay(id, { provider, returnUrl? })` | `POST /orders/:id/initiate-payment` | Initie le paiement chez le fournisseur |
 
 Helpers (sous-chemin `@stakpass/sdk/browser`) :
-- **Kkiapay** : charge le widget, l'ouvre, puis lance `watch` jusqu'au statut final.
+- **kkiapay** : charge le widget, l'ouvre, puis lance `watch` jusqu'au statut final.
 - **Stripe** : redirige vers l'URL de paiement. `returnUrl` est obligatoire et doit correspondre aux sites autorisés de la clé.
 
 ## 7. Robustesse
@@ -102,7 +102,7 @@ Helpers (sous-chemin `@stakpass/sdk/browser`) :
 
 - Types complets (entrées, réponses, enums).
 - Formats : ESM, CJS, types, et un build IIFE (`window.StakPass`) pour une balise `<script>` sans bundler.
-- Points d'entrée : `@stakpass/sdk` (cœur, navigateur et serveur) et `@stakpass/sdk/browser` (DOM : widget Kkiapay, stockage du token).
+- Points d'entrée : `@stakpass/sdk` (cœur, navigateur et serveur) et `@stakpass/sdk/browser` (DOM : widget kkiapay, stockage du token).
 - Outillage : pnpm, tsup, Vitest, Biome.
 - Tests : matrice des deux modes avec `fetch` mocké.
 - README en deux parties (navigateur, serveur) et un exemple HTML de parcours complet.
@@ -120,15 +120,15 @@ Helpers (sous-chemin `@stakpass/sdk/browser`) :
 - URL de base du gateway en production : `https://api.stakpass.com` (option `baseUrl`). Décidé.
 - Canaux de partage : ceux du backend (`LINK`, `WHATSAPP`, `TWITTER`, `FACEBOOK`). Décidé.
 - Helper de panier : dans la v1. Décidé.
-- Widget Kkiapay sur un domaine tiers : confirmé par le propriétaire, à revérifier en phase 8.
+- Widget kkiapay sur un domaine tiers : confirmé par le propriétaire, à revérifier en phase 8.
 
 ## 12. État d'avancement (phase 7)
 
-Fait : client HTTP (retries, timeout, annulation), ressources, mode navigateur et serveur, token de commande, panier, polling, helpers Kkiapay et Stripe, build ESM + CJS + IIFE, 41 tests, README, exemple HTML, release avec bumpp.
+Fait : client HTTP (retries, timeout, annulation), ressources, mode navigateur et serveur, token de commande, panier, polling, helpers kkiapay et Stripe, build ESM + CJS + IIFE, 41 tests, README, exemple HTML, release avec bumpp.
 
 Écarts avec le plan initial :
 - Statuts de commande réels : `INIT`, `PENDING`, `PAID`, `REFUND`, `CANCELLED` (pas de `FAILED` ni `EXPIRED`).
 - Le corps de commande est `tickets` + `packs`, pas `items`.
 - Bundler : tsdown à la place de tsup (tsup 9 ne génère pas les types avec TypeScript 7). Le build IIFE est `dist/stakpass.iife.js`.
 
-Non vérifié : le widget Kkiapay sur un domaine tiers, le parcours complet contre un vrai backend (phase 8). Le script `https://cdn.kkiapay.me/k.js` et les fonctions globales utilisées par le helper reprennent l'API du paquet `kkiapay` employé par le frontend ; à confirmer en navigateur.
+Non vérifié : le widget kkiapay sur un domaine tiers, le parcours complet contre un vrai backend (phase 8). Le script `https://cdn.kkiapay.me/k.js` et les fonctions globales utilisées par le helper reprennent l'API du paquet `kkiapay` employé par le frontend ; à confirmer en navigateur.
