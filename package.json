@@ -62,7 +62,8 @@
         "typecheck": "tsc --noEmit",
         "check": "biome check --write",
         "test": "vitest run",
-        "release": "bumpp"
+        "release": "bumpp",
+        "verify": "biome ci --max-diagnostics=none . && tsc --noEmit && vitest run && tsdown"
     },
     "devDependencies": {
         "@biomejs/biome": "^2.5.15",
