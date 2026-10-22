@@ -180,3 +180,32 @@ describe('parsePaymentReturn', () => {
         expect(parsePaymentReturn('')).toBeUndefined();
     });
 });
+
+describe('orders.receipt', () => {
+    it('returns the PDF as a blob and sends the order token with a publishable key', async () => {
+        const calls: Array<{ url: string; headers: Record<string, string> }> = [];
+        const fetch = (async (url: string, init: { headers: Record<string, string> }) => {
+            calls.push({ url, headers: init.headers });
+
+            return new Response('%PDF-1.4', {
+                headers: { 'Content-Type': 'application/pdf' },
+            });
+        }) as unknown as typeof globalThis.fetch;
+        const sp = StakPass.init({ publishableKey: PUBLISHABLE, fetch, ...quiet });
+        const pdf = await sp.orders.receipt('order_1', { orderToken: 'tok' });
+        expect(await pdf.text()).toBe('%PDF-1.4');
+        expect(calls[0]?.url).toBe(
+            'https://api.stakpass.com/core/partner/v1/orders/order_1/receipt',
+        );
+        expect(calls[0]?.headers['X-Order-Token']).toBe('tok');
+    });
+
+    it('throws the API error as JSON', async () => {
+        const { fetch } = fakeFetch({
+            status: 404,
+            body: { statusCode: 404, message: 'ORDER_NOT_FOUND' },
+        });
+        const sp = StakPass.init({ secretKey: SECRET, fetch, ...quiet });
+        await expect(sp.orders.receipt('order_1')).rejects.toMatchObject({ status: 404 });
+    });
+});

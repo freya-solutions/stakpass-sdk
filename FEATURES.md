@@ -56,6 +56,7 @@ const sp = StakPass.init({
 | `orders.create({ buyer, tickets?, packs?, promoCode?, vendorCode? })` | `POST /orders` | Crée la commande (statut `INIT`, sans stock réservé). Renvoie `accessToken` une seule fois |
 | `orders.get(id)` | `GET /orders/:id` | Statut de la commande |
 | `orders.tickets(id)` | `GET /orders/:id/tickets` | Billets de la commande, disponibles une fois payée |
+| `orders.receipt(id)` | `GET /orders/:id/receipt` | Reçu PDF d'une commande payée, renvoyé en `Blob`. Plan PRO/CUSTOM requis (403 `PLAN_FEATURE_UNAVAILABLE`). Le 404 `ORDER_NOT_FOUND` couvre aussi « pas encore payée » et « mauvais jeton » |
 | `orders.list(params?)` | `GET /orders` | Liste des commandes de l'événement. **Serveur seulement** |
 | `orders.watch(id, callback, opts?)` | `GET /orders/:id` en boucle | Polling avec backoff jusqu'à un statut final (`PAID`, `REFUND`, `CANCELLED`). Renvoie `{ stop, done }`. `waitForPayment` et `waitForTickets` en sont les raccourcis |
 

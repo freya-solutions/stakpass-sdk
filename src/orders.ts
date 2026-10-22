@@ -86,6 +86,20 @@ export class OrdersResource {
         });
     }
 
+    /**
+     * PDF receipt of a paid order, as a `Blob` (`type` is `application/pdf`). The 404 `ORDER_NOT_FOUND`
+     * also covers an order that is not `PAID` yet or a wrong token: check `get` first. The event host
+     * needs the PRO or CUSTOM plan, otherwise 403 `PLAN_FEATURE_UNAVAILABLE`.
+     */
+    receipt(orderId: string, options: OrderCallOptions = {}) {
+        return this.http.request<Blob>({
+            path: `orders/${encodeURIComponent(orderId)}/receipt`,
+            headers: this.orderHeaders(orderId, options),
+            responseType: 'binary',
+            signal: options.signal,
+        });
+    }
+
     /** Orders created by this key, newest first. Secret keys only. */
     list(params: ListOrdersParams = {}, options: CallOptions = {}) {
         if (this.mode !== 'server') {

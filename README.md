@@ -89,6 +89,7 @@ const { data, total } = await sp.orders.list({ status: 'PAID' }); // secret keys
 | `sp.track.view(input?)` / `sp.track.share(platform)` | Statistics. `platform` is `LINK`, `WHATSAPP`, `TWITTER` or `FACEBOOK`. |
 | `sp.orders.create({ buyer, tickets?, packs?, promoCode?, vendorCode? })` | Creates an order in `INIT` status. Nothing is reserved until it is paid. |
 | `sp.orders.get(id)` / `sp.orders.tickets(id)` | Reads an order and its issued tickets. |
+| `sp.orders.receipt(id)` | PDF receipt of a paid order, as a `Blob`. Needs the PRO or CUSTOM plan. A 404 also means "not paid yet": check `get` first. |
 | `sp.orders.pay(id, { provider, returnUrl? })` | Starts a payment (`KKIAPAY` or `STRIPE`). A new call makes the previous attempt unpayable. |
 | `sp.orders.watch(id, onChange?)` / `waitForPayment(id)` / `waitForTickets(id)` | Polling with backoff. `watch` returns `{ stop, done }`. |
 | `sp.orders.list(params?)` | Orders of the key. Secret keys only. |

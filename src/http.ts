@@ -25,6 +25,8 @@ export interface HttpRequest {
     signal?: AbortSignal;
     /** False for a call that is not safe to send twice. A 429 is still retried: nothing ran. */
     retryable?: boolean;
+    /** `binary` reads a successful answer as a `Blob`. Errors are always JSON. */
+    responseType?: 'json' | 'binary';
 }
 
 export class HttpClient {
@@ -83,8 +85,9 @@ export class HttpClient {
             controller.abort();
         }
 
+        const binary = request.responseType === 'binary';
         const headers: Record<string, string> = {
-            Accept: 'application/json',
+            Accept: binary ? 'application/pdf, application/json' : 'application/json',
             'X-Api-Key': this.config.apiKey,
         };
         if (request.body !== undefined) {
@@ -123,6 +126,9 @@ export class HttpClient {
             request.signal?.removeEventListener('abort', onCallerAbort);
         }
 
+        if (binary && response.ok) {
+            return (await response.blob()) as T;
+        }
         const body = await this.readBody(response);
         if (!response.ok) {
             throw errorFromResponse(response.status, body, {
