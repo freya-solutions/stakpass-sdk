@@ -1,6 +1,6 @@
 {
     "name": "@stakpass/sdk",
-    "version": "0.2.1-beta.1",
+    "version": "0.2.1-beta.2",
     "description": "Sell StakPass event tickets from your own website or server.",
     "license": "MIT",
     "repository": {
