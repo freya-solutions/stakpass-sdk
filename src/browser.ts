@@ -15,10 +15,10 @@ export * from './index';
 const KKIAPAY_SCRIPT = 'https://cdn.kkiapay.me/k.js';
 
 interface kkiapayGlobals {
-    openkkiapayWidget(options: Record<string, unknown>): void;
+    openKkiapayWidget(options: Record<string, unknown>): void;
     addSuccessListener(listener: (response: { transactionId?: string }) => void): void;
     addFailedListener(listener: (response?: unknown) => void): void;
-    addkkiapayCloseListener(listener: () => void): void;
+    addKkiapayCloseListener(listener: () => void): void;
 }
 
 type kkiapayHandlers = {
@@ -44,16 +44,16 @@ function loadkkiapay(): Promise<kkiapayGlobals> {
         const ready = () => {
             const globals = widgetGlobals();
             if (
-                globals.openkkiapayWidget &&
+                globals.openKkiapayWidget &&
                 globals.addSuccessListener &&
                 globals.addFailedListener &&
-                globals.addkkiapayCloseListener
+                globals.addKkiapayCloseListener
             ) {
                 // The widget keeps every listener it is given: register once, dispatch to the
                 // payment in progress.
                 globals.addSuccessListener((response) => handlers?.success(response));
                 globals.addFailedListener(() => handlers?.failed());
-                globals.addkkiapayCloseListener(() => handlers?.close());
+                globals.addKkiapayCloseListener(() => handlers?.close());
                 resolve(globals as kkiapayGlobals);
                 return;
             }
@@ -133,7 +133,7 @@ export async function payWithkkiapay(
             failed: closed,
             close: closed,
         };
-        widget.openkkiapayWidget({
+        widget.openKkiapayWidget({
             amount: metadata.amount,
             key: metadata.publicKey,
             sandbox: metadata.sandbox,

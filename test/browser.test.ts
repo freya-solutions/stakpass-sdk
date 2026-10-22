@@ -26,10 +26,10 @@ function pageWithWidget(outcome: 'success' | 'closed') {
         createElement: () => script,
         head: {
             append: () => {
-                scope.openkkiapayWidget = open;
+                scope.openKkiapayWidget = open;
                 scope.addSuccessListener = (listener: () => void) => (listeners.success = listener);
                 scope.addFailedListener = (listener: () => void) => (listeners.failed = listener);
-                scope.addkkiapayCloseListener = (listener: () => void) =>
+                scope.addKkiapayCloseListener = (listener: () => void) =>
                     (listeners.close = listener);
                 script.onload?.();
             },
@@ -51,10 +51,10 @@ describe('kkiapay widget', () => {
     afterEach(() => {
         restore?.();
         for (const name of [
-            'openkkiapayWidget',
+            'openKkiapayWidget',
             'addSuccessListener',
             'addFailedListener',
-            'addkkiapayCloseListener',
+            'addKkiapayCloseListener',
         ]) {
             delete (globalThis as Record<string, unknown>)[name];
         }
