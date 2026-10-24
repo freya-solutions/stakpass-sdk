@@ -80,6 +80,8 @@ Le total du panier est indicatif. Le backend reste la référence : le montant d
 | Méthode | Route | Rôle |
 |---|---|---|
 | `orders.pay(id, { provider, returnUrl? })` | `POST /orders/:id/initiate-payment` | Initie le paiement chez le fournisseur |
+| `orders.confirmFree(id)` | `POST /orders/:id/pos-pay` | Confirme une commande gratuite, sans paiement |
+| `orders.confirm(id, { provider?, returnUrl? })` | `GET /orders/:id` puis `pos-pay` ou `initiate-payment` | Choisit selon le montant : gratuit → `pos-pay`, payant → `initiate-payment` |
 
 Helpers (sous-chemin `@stakpass/sdk/browser`) :
 - **kkiapay** : charge le widget, l'ouvre, puis lance `watch` jusqu'au statut final.

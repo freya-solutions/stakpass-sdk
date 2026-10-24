@@ -150,6 +150,18 @@ export interface PayInput {
     returnUrl?: string;
 }
 
+export interface OkResponse {
+    message: string;
+}
+
+/** What `orders.confirm` did: confirmed a free order, or started the payment of a paid one. */
+export type ConfirmResult =
+    | { kind: 'FREE'; result: OkResponse }
+    | { kind: 'PAYMENT'; initiation: PaymentInitiation };
+
+/** Like `PayInput`, but `provider` can be left out when the order is free. */
+export type ConfirmInput = Partial<PayInput>;
+
 export interface ListOrdersParams {
     status?: OrderStatus;
     page?: number;

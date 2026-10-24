@@ -5,11 +5,14 @@ import { startPolling, type Watch } from './poll';
 import type { OrderTokenStore } from './token-store';
 import {
     type CallOptions,
+    type ConfirmInput,
+    type ConfirmResult,
     type CreateOrderInput,
     type CreateOrderOptions,
     FINAL_ORDER_STATUSES,
     type ListOrdersParams,
     type ListOrdersResult,
+    type OkResponse,
     type OrderCallOptions,
     type PartnerOrder,
     type PartnerUserTicket,
@@ -130,6 +133,51 @@ export class OrdersResource {
             headers: this.orderHeaders(orderId, options),
             signal: options.signal,
         });
+    }
+
+    /**
+     * Confirms an order that costs nothing: no payment is involved and fulfillment starts right away.
+     * Fails with 404 `ORDER_NOT_FOUND` when the order is not free, 403 `ORDER_ALREADY_PAID` when it
+     * is not in `INIT` status, and 409 `TICKET_SALES_CLOSED` when sales are closed.
+     */
+    confirmFree(orderId: string, options: OrderCallOptions = {}) {
+        return this.http.request<OkResponse>({
+            method: 'POST',
+            path: `orders/${encodeURIComponent(orderId)}/pos-pay`,
+            headers: this.orderHeaders(orderId, options),
+            signal: options.signal,
+        });
+    }
+
+    /**
+     * Confirms an order whatever its price: a free order (`amount` 0) goes through `confirmFree`,
+     * a paid one through `pay`, which needs `provider`. Costs one extra `get` to read the amount.
+     */
+    async confirm(
+        orderId: string,
+        input: ConfirmInput = {},
+        options: OrderCallOptions = {},
+    ): Promise<ConfirmResult> {
+        const order = await this.get(orderId, options);
+        if (order.amount === 0) {
+            return { kind: 'FREE', result: await this.confirmFree(orderId, options) };
+        }
+        if (!input.provider) {
+            throw new StakPassError(
+                SDK_ERROR.VALIDATION_ERROR,
+                0,
+                'This order is not free: orders.confirm needs a provider',
+            );
+        }
+
+        return {
+            kind: 'PAYMENT',
+            initiation: await this.pay(
+                orderId,
+                { provider: input.provider, returnUrl: input.returnUrl },
+                options,
+            ),
+        };
     }
 
     /**

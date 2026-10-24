@@ -106,6 +106,7 @@ describe('kkiapay widget', () => {
         const { checkout } = await freshBrowserModule();
         const { fetch, calls } = fakeFetch(
             { status: 201, body: { ...ORDER, accessToken: 'tok' } },
+            { body: ORDER },
             { body: { provider: 'KKIAPAY', metadata } },
             { body: { ...ORDER, status: 'PENDING' } },
             { body: { ...ORDER, status: 'PAID' } },
@@ -119,8 +120,21 @@ describe('kkiapay widget', () => {
             maxIntervalMs: 2,
         });
         expect(paid.status).toBe('PAID');
-        expect(calls[1]?.url).toContain('/orders/order_1/initiate-payment');
-        expect(calls[1]?.init.headers['X-Order-Token']).toBe('tok');
+        expect(calls[2]?.url).toContain('/orders/order_1/initiate-payment');
+        expect(calls[2]?.init.headers['X-Order-Token']).toBe('tok');
+    });
+
+    it('checkout confirms a free order without a provider', async () => {
+        const { checkout } = await freshBrowserModule();
+        const { fetch, calls } = fakeFetch(
+            { body: { ...ORDER, amount: 0 } },
+            { body: { message: 'OK' } },
+            { body: { ...ORDER, amount: 0, status: 'PAID' } },
+        );
+        const sp = StakPass.init({ publishableKey: PUBLISHABLE, fetch, autoTrackView: false });
+        const paid = await checkout(sp, 'order_1', { intervalMs: 1, maxIntervalMs: 2 });
+        expect(paid.status).toBe('PAID');
+        expect(calls[1]?.url).toContain('/orders/order_1/pos-pay');
     });
 
     it('redirects to Stripe', async () => {

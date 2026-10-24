@@ -153,7 +153,8 @@ export function redirectToStripe(metadata: StripeMetadata) {
 }
 
 export interface CheckoutOptions extends PollOptions {
-    provider: 'KKIAPAY' | 'STRIPE';
+    /** Required unless the order is free. */
+    provider?: 'KKIAPAY' | 'STRIPE';
     /** Required for STRIPE: an HTTPS page of one of the key's sites. */
     returnUrl?: string;
     buyer?: Buyer;
@@ -162,7 +163,8 @@ export interface CheckoutOptions extends PollOptions {
 }
 
 /**
- * Pays an order end to end. KKIAPAY: starts the payment, opens the widget, then waits until the
+ * Confirms an order end to end. A free order is confirmed without payment, then the promise waits
+ * until the backend sees it paid. Otherwise, KKIAPAY: starts the payment, opens the widget, then waits until the
  * backend sees the order paid and resolves with it. STRIPE: starts the payment and redirects; the
  * promise never settles, read the result with `parsePaymentReturn` on the return page.
  */
@@ -171,7 +173,11 @@ export async function checkout(
     orderId: string,
     options: CheckoutOptions,
 ): Promise<PartnerOrder> {
-    const initiation: PaymentInitiation = await sp.orders.pay(orderId, options, options);
+    const confirmation = await sp.orders.confirm(orderId, options, options);
+    if (confirmation.kind === 'FREE') {
+        return sp.orders.waitForPayment(orderId, options);
+    }
+    const initiation: PaymentInitiation = confirmation.initiation;
     if (initiation.provider === 'STRIPE') {
         redirectToStripe(initiation.metadata);
 

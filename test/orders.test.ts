@@ -75,6 +75,43 @@ describe('orders with a publishable key', () => {
         });
     });
 
+    it('confirms a free order with the token', async () => {
+        const { fetch, calls } = fakeFetch({ body: { message: 'OK' } });
+        const sp = StakPass.init({ publishableKey: PUBLISHABLE, fetch, ...quiet });
+        await sp.orders.confirmFree('order_1', { orderToken: 'tok_1' });
+        expect(calls[0]?.url).toContain('/orders/order_1/pos-pay');
+        expect(calls[0]?.init.method).toBe('POST');
+        expect(calls[0]?.init.headers['X-Order-Token']).toBe('tok_1');
+    });
+
+    it('confirm picks pos-pay for a free order and initiate-payment for a paid one', async () => {
+        const { fetch, calls } = fakeFetch(
+            { body: { ...ORDER, amount: 0 } },
+            { body: { message: 'OK' } },
+            { body: { ...ORDER, amount: 5000 } },
+            { body: { provider: 'KKIAPAY', metadata: {} } },
+        );
+        const sp = StakPass.init({ publishableKey: PUBLISHABLE, fetch, ...quiet });
+        const free = await sp.orders.confirm('order_1', {}, { orderToken: 't' });
+        expect(free.kind).toBe('FREE');
+        expect(calls[1]?.url).toContain('/orders/order_1/pos-pay');
+        const paid = await sp.orders.confirm(
+            'order_1',
+            { provider: 'KKIAPAY' },
+            { orderToken: 't' },
+        );
+        expect(paid.kind).toBe('PAYMENT');
+        expect(calls[3]?.url).toContain('/orders/order_1/initiate-payment');
+    });
+
+    it('confirm needs a provider for a paid order', async () => {
+        const { fetch } = fakeFetch({ body: { ...ORDER, amount: 5000 } });
+        const sp = StakPass.init({ publishableKey: PUBLISHABLE, fetch, ...quiet });
+        await expect(sp.orders.confirm('order_1', {}, { orderToken: 't' })).rejects.toMatchObject({
+            code: 'VALIDATION_ERROR',
+        });
+    });
+
     it('lets the caller pass a token it holds', async () => {
         const { fetch, calls } = fakeFetch({ body: ORDER });
         const sp = StakPass.init({ publishableKey: PUBLISHABLE, fetch, ...quiet });

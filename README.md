@@ -91,6 +91,8 @@ const { data, total } = await sp.orders.list({ status: 'PAID' }); // secret keys
 | `sp.orders.get(id)` / `sp.orders.tickets(id)` | Reads an order and its issued tickets. |
 | `sp.orders.receipt(id)` | PDF receipt of a paid order, as a `Blob`. Needs the PRO or CUSTOM plan. A 404 also means "not paid yet": check `get` first. |
 | `sp.orders.pay(id, { provider, returnUrl? })` | Starts a payment (`KKIAPAY` or `STRIPE`). A new call makes the previous attempt unpayable. |
+| `sp.orders.confirmFree(id)` | Confirms an order that costs nothing (`POST /orders/:id/pos-pay`). Fulfillment starts right away. |
+| `sp.orders.confirm(id, { provider?, returnUrl? })` | Confirms an order whatever its price: `confirmFree` when `amount` is 0, `pay` otherwise (then `provider` is required). Returns `{ kind: 'FREE' \| 'PAYMENT', … }`. |
 | `sp.orders.watch(id, onChange?)` / `waitForPayment(id)` / `waitForTickets(id)` | Polling with backoff. `watch` returns `{ stop, done }`. |
 | `sp.orders.list(params?)` | Orders of the key. Secret keys only. |
 | `createCart()` | In-memory basket: `addTicket`, `addPack`, `setTicket`, `remove…`, `totals`, `validate`, `toOrderItems`. Totals are indicative; the backend is the authority and adds the fees. |
