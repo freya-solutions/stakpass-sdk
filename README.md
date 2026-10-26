@@ -62,6 +62,18 @@ if (back?.payment === 'success') {
 
 Your page's Content-Security-Policy must allow `https://api.stakpass.com`, and for kkiapay `https://cdn.kkiapay.me` and its frames.
 
+## Verify the buyer's email
+
+```ts
+const sp = StakPass.init({ publishableKey: 'spk_pub_…' });
+
+await sp.buyerVerification.start('ada@example.com');
+await sp.buyerVerification.confirm('ada@example.com', codeTypedByTheBuyer); // 400 OTP_INVALID: ask again
+await sp.orders.create({ buyer: { email: 'ada@example.com' }, ...cart.toOrderItems() });
+```
+
+`orders.create` sends the token held for the buyer's address. On 403 `BUYER_VERIFICATION_INVALID` the token is dropped: verify again. The backend does not require the token: check `sp.buyerVerification.isVerified(email)` before ordering if your page needs it.
+
 ## On a server
 
 ```ts
@@ -87,6 +99,7 @@ const { data, total } = await sp.orders.list({ status: 'PAID' }); // secret keys
 | `sp.tickets.list()` / `sp.packs.list()` | What is on sale. `salesOpen: false` means listed but not buyable now. |
 | `sp.promo.validate(code)` | Checks a promo code. The order applies the discount. |
 | `sp.track.view(input?)` / `sp.track.share(platform)` | Statistics. `platform` is `LINK`, `WHATSAPP`, `TWITTER` or `FACEBOOK`. |
+| `sp.buyerVerification.start(email)` / `confirm(email, otp)` | Mails a 6-digit code (10 min), then exchanges it for a single-use token (30 min). The SDK keeps the token in memory and `orders.create` sends it. Wait 60 s before resending; 5 wrong codes burn it. |
 | `sp.orders.create({ buyer, tickets?, packs?, promoCode?, vendorCode? })` | Creates an order in `INIT` status. Nothing is reserved until it is paid. |
 | `sp.orders.get(id)` / `sp.orders.tickets(id)` | Reads an order and its issued tickets. |
 | `sp.orders.receipt(id)` | PDF receipt of a paid order, as a `Blob`. Needs the PRO or CUSTOM plan. A 404 also means "not paid yet": check `get` first. |

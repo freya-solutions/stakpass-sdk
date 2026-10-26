@@ -1,3 +1,4 @@
+import type { VerificationTokenStore } from './buyer-verification';
 import { randomId } from './env';
 import { SDK_ERROR, StakPassError } from './errors';
 import type { HttpClient } from './http';
@@ -23,6 +24,8 @@ import {
 
 export type KeyMode = 'browser' | 'server';
 
+const BUYER_VERIFICATION_INVALID = 'BUYER_VERIFICATION_INVALID';
+
 const ORDER_TOKEN_HEADER = 'X-Order-Token';
 const IDEMPOTENCY_HEADER = 'Idempotency-Key';
 
@@ -31,6 +34,7 @@ export class OrdersResource {
         private readonly http: HttpClient,
         private readonly mode: KeyMode,
         private readonly tokens: OrderTokenStore,
+        private readonly verifications: VerificationTokenStore,
     ) {}
 
     /** Browser keys prove access to an order with the token returned when it was created. */
@@ -46,25 +50,39 @@ export class OrdersResource {
      * Creates an order in `INIT` status. Nothing is reserved until it is paid. With a browser key the
      * answer carries `accessToken` once; the SDK keeps it for this tab. With a secret key the call is
      * safe to retry: the same idempotency key returns the same order for 24 hours.
+     * The buyer's verification token (`buyer.verificationToken`, else the one held for the address)
+     * is sent along. A 403 `BUYER_VERIFICATION_INVALID` drops the held token: verify the address
+     * again.
      */
     async create(input: CreateOrderInput, options: CreateOrderOptions = {}) {
         const server = this.mode === 'server';
-        const order = await this.http.request<PartnerOrder>({
-            method: 'POST',
-            path: 'orders',
-            body: {
-                buyer: input.buyer,
-                tickets: input.tickets ?? [],
-                packs: input.packs ?? [],
-                promoCode: input.promoCode,
-                vendorCode: input.vendorCode,
-            },
-            headers: server
-                ? { [IDEMPOTENCY_HEADER]: options.idempotencyKey ?? `sp_${randomId()}` }
-                : undefined,
-            retryable: server,
-            signal: options.signal,
-        });
+        const { email } = input.buyer;
+        const verificationToken = input.buyer.verificationToken ?? this.verifications.get(email);
+        const order = await this.http
+            .request<PartnerOrder>({
+                method: 'POST',
+                path: 'orders',
+                body: {
+                    buyer: { ...input.buyer, verificationToken },
+                    tickets: input.tickets ?? [],
+                    packs: input.packs ?? [],
+                    promoCode: input.promoCode,
+                    vendorCode: input.vendorCode,
+                },
+                headers: server
+                    ? { [IDEMPOTENCY_HEADER]: options.idempotencyKey ?? `sp_${randomId()}` }
+                    : undefined,
+                retryable: server,
+                signal: options.signal,
+            })
+            .catch((error: unknown) => {
+                if (error instanceof StakPassError && error.code === BUYER_VERIFICATION_INVALID) {
+                    this.verifications.forget(email);
+                }
+                throw error;
+            });
+        // The token is single-use: the order consumed it.
+        this.verifications.forget(email);
         if (order.accessToken) {
             this.tokens.set(order.id, order.accessToken);
         }

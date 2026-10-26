@@ -1,3 +1,4 @@
+import { BuyerVerificationResource, VerificationTokenStore } from './buyer-verification';
 import { EventResource, PacksResource, PromoResource, TicketsResource } from './catalog';
 import { isBrowser, PUBLISHABLE_KEY_PREFIX, SECRET_KEY_PREFIX } from './env';
 import { SDK_ERROR, StakPassError } from './errors';
@@ -71,6 +72,7 @@ export class StakPass {
     readonly promo: PromoResource;
     readonly track: TrackResource;
     readonly orders: OrdersResource;
+    readonly buyerVerification: BuyerVerificationResource;
     /** `browser` for a publishable key, `server` for a secret key. */
     readonly mode: KeyMode;
 
@@ -93,7 +95,9 @@ export class StakPass {
         this.packs = new PacksResource(http);
         this.promo = new PromoResource(http);
         this.track = new TrackResource(http);
-        this.orders = new OrdersResource(http, mode, new OrderTokenStore());
+        const verifications = new VerificationTokenStore();
+        this.buyerVerification = new BuyerVerificationResource(http, verifications);
+        this.orders = new OrdersResource(http, mode, new OrderTokenStore(), verifications);
 
         if (mode === 'browser' && config.autoTrackView !== false) {
             // Statistics must never break the page.

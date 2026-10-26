@@ -123,6 +123,11 @@ export interface Buyer {
     /** Used only when the account is created by this order. */
     name?: string;
     phone?: string;
+    /**
+     * Proof that the buyer owns `email`, from `buyerVerification.confirm`. Left out, `orders.create`
+     * uses the token the SDK holds for this address.
+     */
+    verificationToken?: string;
 }
 
 export interface TicketLine {
@@ -148,6 +153,16 @@ export interface PayInput {
     provider: OnlinePaymentProvider;
     /** HTTPS page the buyer returns to. Required for STRIPE, and its origin must be a site of the key. */
     returnUrl?: string;
+}
+
+export interface OkFlag {
+    ok: boolean;
+}
+
+export interface BuyerVerification {
+    /** Single-use, valid for this key and this address only. */
+    verificationToken: string;
+    expiresAt: string;
 }
 
 export interface OkResponse {
