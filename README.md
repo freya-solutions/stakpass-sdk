@@ -116,7 +116,7 @@ Order statuses: `INIT`, `PENDING`, `PAID`, `REFUND`, `CANCELLED`. The last three
 
 ### Errors
 
-Every failure is a `StakPassError { code, status, message, details?, retryAfter?, requestId? }`. `code` is the backend's (`ORDER_NOT_FOUND`, `INVALID_API_KEY`, `RATE_LIMIT_EXCEEDED`, `INSUFFICIENT_STOCK`, `PLAN_FEATURE_UNAVAILABLE`, …) or one of `SDK_ERROR` (`NETWORK_ERROR`, `TIMEOUT`, `ABORTED`, `SECRET_KEY_IN_BROWSER`, `SERVER_ONLY`, …). A validation failure has code `VALIDATION_ERROR` and the messages in `details`. Quote `requestId` when you contact support.
+Every failure is a `StakPassError { code, status, message, details?, retryAfter?, requestId? }`. `code` is the backend's (`ORDER_NOT_FOUND`, `INVALID_API_KEY`, `RATE_LIMIT_EXCEEDED`, `INSUFFICIENT_STOCK`, `PLAN_FEATURE_UNAVAILABLE`, …) or one of `SDK_ERROR` (`NETWORK_ERROR`, `TIMEOUT`, `ABORTED`, `SECRET_KEY_IN_BROWSER`, `SERVER_ONLY`, …). A validation failure has code `VALIDATION_ERROR` and the messages in `details`. Quote `requestId` when you contact support. Extra fields the backend sends next to the code land in `data`. `orders.create` fails with `FREE_TICKET_ALREADY_CLAIMED` when the buyer already holds a free ticket; `freeTicketClaim(error)` returns `{ ticketId, orderId, orderStatus, userTicketId }` of the existing claim.
 
 ### Retries and timeouts
 

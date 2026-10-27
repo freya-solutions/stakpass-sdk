@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parsePaymentReturn, StakPass } from '../src';
+import { freeTicketClaim, parsePaymentReturn, StakPass } from '../src';
 import { fakeFetch, ORDER, PUBLISHABLE, SECRET } from './helpers';
 
 const buyer = { email: 'a@b.co', name: 'Ada' };
@@ -19,6 +19,24 @@ describe('orders with a secret key', () => {
             tickets: [{ ticketId: 't1', quantity: 2 }],
             packs: [],
         });
+    });
+
+    it('exposes the existing claim on FREE_TICKET_ALREADY_CLAIMED', async () => {
+        const claim = {
+            ticketId: 't1',
+            orderId: 'o1',
+            orderStatus: 'PAID',
+            userTicketId: 'ut1',
+        };
+        const { fetch } = fakeFetch({
+            status: 409,
+            body: { message: 'FREE_TICKET_ALREADY_CLAIMED', ...claim },
+        });
+        const sp = StakPass.init({ secretKey: SECRET, fetch, ...quiet });
+        const error = await sp.orders.create({ buyer }).catch((e: unknown) => e);
+        expect(error).toMatchObject({ code: 'FREE_TICKET_ALREADY_CLAIMED', data: claim });
+        expect(freeTicketClaim(error)).toEqual(claim);
+        expect(freeTicketClaim(new Error('x'))).toBeUndefined();
     });
 
     it('lets the caller pick the idempotency key', async () => {

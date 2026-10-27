@@ -12,6 +12,17 @@ export const SDK_ERROR = {
     PAYMENT_CLOSED: 'PAYMENT_CLOSED',
 } as const;
 
+/** Backend code of `orders.create` when the buyer already holds this free ticket. */
+export const FREE_TICKET_ALREADY_CLAIMED = 'FREE_TICKET_ALREADY_CLAIMED';
+
+/** What the backend adds to a `FREE_TICKET_ALREADY_CLAIMED` answer: the claim that already exists. */
+export interface FreeTicketClaim {
+    ticketId: string;
+    orderId: string;
+    orderStatus: string;
+    userTicketId: string;
+}
+
 export class StakPassError extends Error {
     override readonly name = 'StakPassError';
 
@@ -25,6 +36,8 @@ export class StakPassError extends Error {
         /** Seconds to wait, from the `Retry-After` header of a 429. */
         readonly retryAfter?: number,
         readonly requestId?: string,
+        /** Fields the backend sent next to the code, e.g. the claim of a `FREE_TICKET_ALREADY_CLAIMED`. */
+        readonly data?: Record<string, unknown>,
     ) {
         super(message ?? code);
     }
@@ -32,6 +45,24 @@ export class StakPassError extends Error {
 
 export function isStakPassError(error: unknown): error is StakPassError {
     return error instanceof StakPassError;
+}
+
+/** The existing claim when `error` is a `FREE_TICKET_ALREADY_CLAIMED`, else `undefined`. */
+export function freeTicketClaim(error: unknown): FreeTicketClaim | undefined {
+    if (!isStakPassError(error) || error.code !== FREE_TICKET_ALREADY_CLAIMED) {
+        return undefined;
+    }
+    const { ticketId, orderId, orderStatus, userTicketId } = error.data ?? {};
+    if (
+        typeof ticketId !== 'string' ||
+        typeof orderId !== 'string' ||
+        typeof orderStatus !== 'string' ||
+        typeof userTicketId !== 'string'
+    ) {
+        return undefined;
+    }
+
+    return { ticketId, orderId, orderStatus, userTicketId };
 }
 
 const HTTP_BAD_REQUEST = 400;
@@ -44,8 +75,12 @@ export function errorFromResponse(
 ) {
     let code = `HTTP_${status}`;
     let details: Array<string> | undefined;
+    let data: Record<string, unknown> | undefined;
     if (body && typeof body === 'object') {
-        const { message, error } = body as { message?: unknown; error?: unknown };
+        const { message, error, statusCode, ...rest } = body as Record<string, unknown>;
+        if (Object.keys(rest).length > 0) {
+            data = rest;
+        }
         if (Array.isArray(message)) {
             code = SDK_ERROR.VALIDATION_ERROR;
             details = message.filter((item): item is string => typeof item === 'string');
@@ -64,5 +99,6 @@ export function errorFromResponse(
         details,
         Number.isFinite(retryAfter) && headers.retryAfter ? retryAfter : undefined,
         headers.requestId ?? undefined,
+        data,
     );
 }
