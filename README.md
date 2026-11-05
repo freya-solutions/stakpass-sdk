@@ -98,6 +98,7 @@ const { data, total } = await sp.orders.list({ status: 'PAID' }); // secret keys
 | `sp.event.get()` | The event the key belongs to. |
 | `sp.tickets.list()` / `sp.packs.list()` | What is on sale. `salesOpen: false` means listed but not buyable now. |
 | `sp.promo.validate(code)` | Checks a promo code. The order applies the discount. |
+| `sp.attendeeFormFields.list()` | Questions the organizer asks buyers, in order: `scope` `ORDER` (once per purchase) or `TICKET` (once per ticket, limited to `ticketIds` when not empty). Empty array when there is no form. PRO plan, otherwise 403 `PLAN_FEATURE_UNAVAILABLE`. |
 | `sp.track.view(input?)` / `sp.track.share(platform)` | Statistics. `platform` is `LINK`, `WHATSAPP`, `TWITTER` or `FACEBOOK`. |
 | `sp.buyerVerification.start(email)` / `confirm(email, otp)` | Mails a 6-digit code (10 min), then exchanges it for a single-use token (30 min). The SDK keeps the token in memory and `orders.create` sends it. Wait 60 s before resending; 5 wrong codes burn it. |
 | `sp.orders.create({ buyer, tickets?, packs?, promoCode?, vendorCode? })` | Creates an order in `INIT` status. Nothing is reserved until it is paid. |

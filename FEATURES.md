@@ -41,6 +41,7 @@ const sp = StakPass.init({
 | `tickets.list()` | `GET /tickets` | Billets en vente |
 | `packs.list()` | `GET /ticket-packs` | Packs de billets |
 | `promo.validate(code)` | `GET /promo-codes/validate` | Valide un code promo : renvoie `{ code, discountType, discountValue }`. La remise est appliquée par la commande ; le panier peut l'afficher |
+| `attendeeFormFields.list()` | `GET /attendee-form-fields` | Questions actives posées aux acheteurs, dans l'ordre de l'organisateur (`id`, `scope` `ORDER`/`TICKET`, `type`, `label`, `helpText`, `required`, `options`, `position`, `ticketIds`). Tableau vide sans formulaire. Plan PRO requis (403 `PLAN_FEATURE_UNAVAILABLE`), 404 `EVENT_NOT_FOUND` si l'événement n'existe plus |
 
 ## 4. Statistiques
 

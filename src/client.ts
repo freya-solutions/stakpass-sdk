@@ -1,5 +1,11 @@
 import { BuyerVerificationResource, VerificationTokenStore } from './buyer-verification';
-import { EventResource, PacksResource, PromoResource, TicketsResource } from './catalog';
+import {
+    AttendeeFormFieldsResource,
+    EventResource,
+    PacksResource,
+    PromoResource,
+    TicketsResource,
+} from './catalog';
 import { isBrowser, PUBLISHABLE_KEY_PREFIX, SECRET_KEY_PREFIX } from './env';
 import { SDK_ERROR, StakPassError } from './errors';
 import { HttpClient } from './http';
@@ -70,6 +76,7 @@ export class StakPass {
     readonly tickets: TicketsResource;
     readonly packs: PacksResource;
     readonly promo: PromoResource;
+    readonly attendeeFormFields: AttendeeFormFieldsResource;
     readonly track: TrackResource;
     readonly orders: OrdersResource;
     readonly buyerVerification: BuyerVerificationResource;
@@ -94,6 +101,7 @@ export class StakPass {
         this.tickets = new TicketsResource(http);
         this.packs = new PacksResource(http);
         this.promo = new PromoResource(http);
+        this.attendeeFormFields = new AttendeeFormFieldsResource(http);
         this.track = new TrackResource(http);
         const verifications = new VerificationTokenStore();
         this.buyerVerification = new BuyerVerificationResource(http, verifications);

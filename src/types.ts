@@ -60,6 +60,34 @@ export interface PartnerPack {
     items: Array<{ id: string; quantity: number; ticketId: string }>;
 }
 
+export type AttendeeFieldScope = 'ORDER' | 'TICKET';
+export type AttendeeFieldType =
+    | 'TEXT'
+    | 'LONG_TEXT'
+    | 'EMAIL'
+    | 'PHONE'
+    | 'NUMBER'
+    | 'SELECT'
+    | 'MULTI_SELECT'
+    | 'CHECKBOX'
+    | 'DATE';
+
+/** A question the organizer asks buyers. */
+export interface AttendeeFormField {
+    id: string;
+    /** `ORDER`: asked once per purchase. `TICKET`: asked once per issued ticket. */
+    scope: AttendeeFieldScope;
+    type: AttendeeFieldType;
+    label: string;
+    helpText: string | null;
+    required: boolean;
+    /** Set for `SELECT` and `MULTI_SELECT` only, `null` otherwise. */
+    options: Array<string> | null;
+    position: number;
+    /** `TICKET` questions: empty means every ticket, otherwise only these tickets. */
+    ticketIds: Array<string>;
+}
+
 export interface PromoCode {
     code: string;
     discountType: DiscountType;

@@ -1,5 +1,12 @@
 import type { HttpClient } from './http';
-import type { CallOptions, PartnerEvent, PartnerPack, PartnerTicket, PromoCode } from './types';
+import type {
+    AttendeeFormField,
+    CallOptions,
+    PartnerEvent,
+    PartnerPack,
+    PartnerTicket,
+    PromoCode,
+} from './types';
 
 export class EventResource {
     constructor(private readonly http: HttpClient) {}
@@ -40,6 +47,22 @@ export class PromoResource {
         return this.http.request<PromoCode>({
             path: 'promo-codes/validate',
             query: { code },
+            signal: options.signal,
+        });
+    }
+}
+
+export class AttendeeFormFieldsResource {
+    constructor(private readonly http: HttpClient) {}
+
+    /**
+     * Active questions of the event, in the organizer's order. Empty when the event has no form.
+     * Needs the PRO plan, otherwise 403 `PLAN_FEATURE_UNAVAILABLE` (see `details`: `currentPlanType`,
+     * `requiredPlans`, `upgradeUrl`).
+     */
+    list(options: CallOptions = {}) {
+        return this.http.request<Array<AttendeeFormField>>({
+            path: 'attendee-form-fields',
             signal: options.signal,
         });
     }
