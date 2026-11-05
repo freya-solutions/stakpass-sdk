@@ -94,6 +94,39 @@ export interface PromoCode {
     discountValue: number;
 }
 
+/** Value of one answer: a string (`TEXT`, `LONG_TEXT`, `EMAIL`, `PHONE`, `SELECT`, `DATE` as `YYYY-MM-DD`), a number (`NUMBER`), a boolean (`CHECKBOX`) or distinct options (`MULTI_SELECT`). */
+export type AttendeeAnswerValue = string | number | boolean | Array<string>;
+
+/** Answers of one issued ticket, keyed by question id. */
+export interface TicketAttendeeAnswers {
+    ticketId: string;
+    answers: Record<string, AttendeeAnswerValue>;
+}
+
+/**
+ * Answers sent with `orders.create`. Leave it out when the event has no form.
+ * `order`: `ORDER` questions keyed by id (skip an optional question left blank).
+ * `tickets`: exactly one entry per issued ticket targeted by at least one `TICKET` question. Two
+ * tickets `t1` give two entries; a pack counts pack quantity × item quantity entries.
+ */
+export interface AttendeeFormAnswersInput {
+    order?: Record<string, AttendeeAnswerValue>;
+    tickets?: Array<TicketAttendeeAnswers>;
+}
+
+/** An answer as stored on the order, with the question it answered. */
+export interface StoredAttendeeAnswer {
+    label: string;
+    type: AttendeeFieldType;
+    value: AttendeeAnswerValue;
+}
+
+/** Answers stored on an order. */
+export interface AttendeeFormAnswers {
+    order: Record<string, StoredAttendeeAnswer> | null;
+    tickets: Array<{ ticketId: string; answers: Record<string, StoredAttendeeAnswer> }> | null;
+}
+
 export interface OrderItem {
     ticketId: string;
     /** Set when the line comes from a pack. */
@@ -114,6 +147,8 @@ export interface PartnerOrder {
     paidAt: string | null;
     createdAt: string;
     items: Array<OrderItem>;
+    /** `null` when the event has no form. */
+    attendeeFormAnswers: AttendeeFormAnswers | null;
     /** Only in the answer to `orders.create` with a publishable key, and only once. */
     accessToken?: string;
 }
@@ -175,6 +210,8 @@ export interface CreateOrderInput {
     promoCode?: string;
     /** Vendor tracking code of a sales link. Ignored by the backend when unknown. */
     vendorCode?: string;
+    /** Answers to the attendee form (`attendeeFormFields.list`). Left out when the event has no form. */
+    attendeeFormAnswers?: AttendeeFormAnswersInput;
 }
 
 export interface PayInput {

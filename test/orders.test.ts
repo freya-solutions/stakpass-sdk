@@ -39,6 +39,26 @@ describe('orders with a secret key', () => {
         expect(freeTicketClaim(new Error('x'))).toBeUndefined();
     });
 
+    it('sends the attendee form answers', async () => {
+        const { fetch, calls } = fakeFetch({ status: 201, body: ORDER });
+        const sp = StakPass.init({ secretKey: SECRET, fetch, ...quiet });
+        const attendeeFormAnswers = {
+            order: { q1: 'Acme SARL' },
+            tickets: [
+                { ticketId: 't1', answers: { q2: 'M' } },
+                { ticketId: 't1', answers: { q2: 'L' } },
+            ],
+        };
+        await sp.orders.create({
+            buyer,
+            tickets: [{ ticketId: 't1', quantity: 2 }],
+            attendeeFormAnswers,
+        });
+        expect(JSON.parse(String(calls[0]?.init.body)).attendeeFormAnswers).toEqual(
+            attendeeFormAnswers,
+        );
+    });
+
     it('lets the caller pick the idempotency key', async () => {
         const { fetch, calls } = fakeFetch({ status: 201, body: ORDER });
         const sp = StakPass.init({ secretKey: SECRET, fetch, ...quiet });

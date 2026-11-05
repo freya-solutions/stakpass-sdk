@@ -52,7 +52,8 @@ export class OrdersResource {
      * safe to retry: the same idempotency key returns the same order for 24 hours.
      * The buyer's verification token (`buyer.verificationToken`, else the one held for the address)
      * is sent along. A 403 `BUYER_VERIFICATION_INVALID` drops the held token: verify the address
-     * again. `FREE_TICKET_ALREADY_CLAIMED` means the buyer already holds that free
+     * again. Answers to the attendee form go in `attendeeFormAnswers`; on 400 the code is one of
+     * `ATTENDEE_FORM_ANSWER_REQUIRED`, `_INVALID`, `_UNKNOWN_FIELD` or `_TICKETS_MISMATCH`. `FREE_TICKET_ALREADY_CLAIMED` means the buyer already holds that free
      * ticket: `freeTicketClaim(error)` returns the existing order and ticket.
      */
     async create(input: CreateOrderInput, options: CreateOrderOptions = {}) {
@@ -69,6 +70,7 @@ export class OrdersResource {
                     packs: input.packs ?? [],
                     promoCode: input.promoCode,
                     vendorCode: input.vendorCode,
+                    attendeeFormAnswers: input.attendeeFormAnswers,
                 },
                 headers: server
                     ? { [IDEMPOTENCY_HEADER]: options.idempotencyKey ?? `sp_${randomId()}` }

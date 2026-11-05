@@ -35,6 +35,7 @@ export const ORDER = {
     currency: 'XOF',
     paymentProvider: null,
     buyerEmail: 'a@b.co',
+    attendeeFormAnswers: null,
     paidAt: null,
     createdAt: '2026-10-21T00:00:00.000Z',
     items: [],
