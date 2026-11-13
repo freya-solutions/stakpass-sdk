@@ -203,6 +203,7 @@ export interface PackLine {
     quantity: number;
 }
 
+export type Language = 'EN' | 'FR';
 export interface CreateOrderInput {
     buyer: Buyer;
     tickets?: Array<TicketLine>;
@@ -212,6 +213,7 @@ export interface CreateOrderInput {
     vendorCode?: string;
     /** Answers to the attendee form (`attendeeFormFields.list`). Left out when the event has no form. */
     attendeeFormAnswers?: AttendeeFormAnswersInput;
+    language?: Language;
 }
 
 export interface PayInput {

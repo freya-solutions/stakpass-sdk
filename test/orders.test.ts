@@ -39,6 +39,20 @@ describe('orders with a secret key', () => {
         expect(freeTicketClaim(new Error('x'))).toBeUndefined();
     });
 
+    it('sends the language', async () => {
+        const { fetch, calls } = fakeFetch({ status: 201, body: ORDER });
+        const sp = StakPass.init({ secretKey: SECRET, fetch, ...quiet });
+        await sp.orders.create({ buyer, language: 'FR' });
+        expect(JSON.parse(String(calls[0]?.init.body)).language).toBe('FR');
+    });
+
+    it('leaves the language out when not given', async () => {
+        const { fetch, calls } = fakeFetch({ status: 201, body: ORDER });
+        const sp = StakPass.init({ secretKey: SECRET, fetch, ...quiet });
+        await sp.orders.create({ buyer });
+        expect(JSON.parse(String(calls[0]?.init.body))).not.toHaveProperty('language');
+    });
+
     it('sends the attendee form answers', async () => {
         const { fetch, calls } = fakeFetch({ status: 201, body: ORDER });
         const sp = StakPass.init({ secretKey: SECRET, fetch, ...quiet });

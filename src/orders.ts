@@ -71,6 +71,7 @@ export class OrdersResource {
                     promoCode: input.promoCode,
                     vendorCode: input.vendorCode,
                     attendeeFormAnswers: input.attendeeFormAnswers,
+                    language: input.language,
                 },
                 headers: server
                     ? { [IDEMPOTENCY_HEADER]: options.idempotencyKey ?? `sp_${randomId()}` }
